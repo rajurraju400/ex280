@@ -1,0 +1,367 @@
+    1  sudo reboot
+    2  #ssh opsadm@workbench                         #only for exam
+    3  #cat /home/student/kubeadmin-password          #only for lab
+    4  oc login -u admin -p redhatocp https://api.ocp4.example.com:6443
+    5  #oc login -u kubeadmin -p XxoiQ-9PZjt-Jea2a-iRiKU https://api.ocp4.example.com:6443 #only for exam
+    6  oc whoami
+    7  cd Downloads/Scenario_v4.12_1.0/
+    8  ls
+    9  sh project.sh 
+
+Class Dashboard - 20240511-NA-DO280 (57981404)
+
+Refer Section-3 in Student guide
+3. Authentication and Authorization
+Configure Identity Providers .................................................................................... 92
+
+sudo yum install httpd-tools -y
+   
+   10  htpasswd
+   11  #create htpasswd file to store the user and password information
+   12  mkdir mypass
+   13  htpasswd -c -B -b mypass/users jobs deluges
+   15  htpasswd -B -b mypass/users wozniak grannies
+   17  htpasswd -B -b mypass/users collins culverins
+   18  htpasswd -B -b mypass/users adlerin artiste
+   19  htpasswd -B -b mypass/users armstrong spacesuits
+   20  cat mypass/users  
+   
+   21  oc create secret generic htpass-idp-ex280 --from-file htpasswd=mypass/users -n openshift-config
+   22  oc get secret htpass-idp-ex280 -o yaml -n openshift-config
+   24  oc get oauth cluster -o yaml
+   25  oc get oauth cluster -o yaml > oauth.yaml
+      
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.14/html/authentication_and_authorization/configuring-identity-providers#identity-provider-htpasswd-CR_configuring-htpasswd-identity-provider
+   
+   26  vim oauth.yaml 
+   27  oc apply -f oauth.yaml
+       oc get oauth cluster -o yaml
+   29  watch oc get pods -n openshift-authentication
+   30  history
+   
+   51  oc login -u jobs -p deluges
+   52  oc login -u wozniak -p grannies
+   53  oc login -u collins -p culverins
+   54  oc login -u adlerin -p artiste
+   55  oc login -u armstrong -p spacesuits  
+   
+   56  oc login -u admin -p redhatocp https://api.ocp4.example.com:6443
+   57  oc get clusterrolebinding -o wide | grep jobs
+   58  oc adm policy add-cluster-role-to-user cluster-admin jobs
+   59  oc get clusterrolebinding -o wide | grep jobs
+   60  oc describe clusterrolebinding self-provisioners
+   62  oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+   63  oc describe clusterrolebinding self-provisioners
+   64  oc adm policy add-cluster-role-to-user self-provisioner wozniak
+   66  oc describe clusterrolebinding self-provisioner
+   67  oc login -u wozniak -p grannies
+   68  oc new-project proj1
+   69  oc get nodes
+   70  oc login -u armstrong -p spacesuits
+   71  oc new-project proj2
+   72  oc login -u jobs -p deluges
+   73  oc get nodes
+   74  #oc get secret kubeadmin -n kube-system
+   75  #oc delete secret kubeadmin -n kube-system
+   76  history
+     
+   77  oc login -u jobs -p deluges
+   78  oc new-project apollo
+   79  oc new-project titan
+   80  oc new-project gemini
+   81  oc new-project bluebook
+   82  oc new-project apache
+   83  oc get projects
+   84  oc policy add-role-to-user admin armstrong -n apollo
+   85  oc policy add-role-to-user admin armstrong -n titan
+   86  oc policy add-role-to-user view collins -n apollo
+   87  oc get rolebinding -o wide -n apollo
+   88  oc get rolebinding -o wide -n titan
+   89  history
+      
+   90  oc adm groups new commander 
+   91  oc adm groups add-users commander woznaik 
+   92  oc adm groups new pilot
+   93  oc adm groups add-users pilot adlerin
+   94  oc get groups
+   95  oc delete group commander
+   96  oc get groups
+   97  oc adm groups new commander 
+   98  oc adm groups add-users commander woznaik 
+   99* oc get groups
+  100  oc policy add-role-to-group edit commander -n apache
+  101  oc policy add-role-to-group edit commander -n gemini
+  102  oc policy add-role-to-group view pilot -n apache
+  103  oc get rolebinding -o wide -n apache
+  104  oc get rolebinding -o wide -n gemini
+  105  history
+ 
+Refer Section-3 in Student guide
+6. Enable Developer Self-Service
+
+Q5: Configure Quotas for the Project
+
+  115  oc new-project manhattan
+  116  oc project manhattan 
+  117  oc create quota ex280-quota --hard limits.memory=1Gi,limits.cpu=2,replicationcontrollers=3,pods=3,services=6
+  118  oc describe resourcequotas ex280-quota 
+  119  oc edit quota ex280-quota 
+
+
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.14/html/nodes/working-with-clusters#nodes-cluster-limit-creating_nodes-cluster-limit-ranges
+
+Q6: Configure Limits for the Project
+
+  120  oc project bluebook 
+  121  cat > limits.yaml
+  122  oc project bluebook 
+  123  cat > limits.yaml
+  124  vim limits.yaml 
+  125  oc project
+  126  vim limits.yaml 
+  127  oc create -f limits.yaml 
+  128  oc describe limitranges ex280-limits 
+  129  oc edit limitranges ex280-limits 
+
+  106  sh startSCENARIO.sh 
+
+Refer Section-4 in Student guide
+4. Network Security
+
+  107  oc project area51
+  108  oc get all
+  109  oc get route
+  110  oc delete route oxcart
+  111  mkdir cert
+  112  cd cert
+  113  ls
+  114  newcert "/C=US/ST=NC/L=Raleigh/O=RedHat/OU=RHT/CN=oxcart.apps.ocp4.example.com"
+  115  cd ..
+  116  ls
+  117  sudo cp newcert /usr/bin
+  118  sudo chmod a+x /usr/bin/newcert
+  119  newcert "/C=US/ST=NC/L=Raleigh/O=RedHat/OU=RHT/CN=oxcart.apps.ocp4.example.com"
+  120  cd cert
+  121  newcert "/C=US/ST=NC/L=Raleigh/O=RedHat/OU=RHT/CN=oxcart.apps.ocp4.example.com"
+  122  ls
+  123  oc create route edge --service oxcart --cert apps-crc.testing.crt --key apps-crc.testing.key --hostname oxcart.apps.ocp4.example.com
+  124  oc get route
+  125  cd ..
+  126  history
+
+Refer Section-6 in Student guide
+6. Enable Developer Self-Service
+  
+  127  oc project lerna
+  128  oc get all
+  129  oc scale --replicas 5 deployment.apps/hydra
+  130  oc get pods
+  131  history
+  
+  132  oc project gru
+  133  oc get all
+  134  oc get all | grep deploy
+  135  oc autoscale --min 6 --max 40 --cpu-percent 60 deployment.apps/scala
+  136  oc get hpa
+  137  oc set resources --requests cpu=25m --limits cpu=100m deployment.apps/scala
+  138  oc describe deployment.apps/scala | grep -A1 -E 'Requests|Limits'
+  139  history
+  
+  140  oc project math
+  141  oc create secret generic magic --from-literal Decoder_Ring=ASDA142hfh-gfrhhueo-erfdk345v
+  142  oc get secret magic -o yaml
+	   echo " " | base64 -d
+  143  history
+  
+  144  oc project
+  145  oc get all
+  146  oc get all | grep deploy
+  147  oc set env --from secret/magic deployment.apps/qed 
+  148  oc describe deployment.apps/qed | grep -A1 Env
+  149  oc get pods
+  150  oc get route
+  151  curl qed.apps.ocp4.example.com 
+
+Refer Section-8 in Student guide
+Application Security
+  
+  152  oc project apples
+  153  oc create sa ex-280-sa
+  154  oc adm policy add-scc-to-user anyuid -z ex-280-sa
+	   oc get clusterrolebinding -o wide | grep ex-280-sa
+  
+  155  oc project
+  156  oc get all
+  157  oc get all | grep deploy
+  158  oc set serviceaccount deployment.apps/oranges ex-280-sa
+  159  oc get all | grep deploy
+  160  oc get all
+  161  curl oranges.apps.ocp4.example.com 
+  162  oc get all
+  163  oc describe pod oranges-7984c7bf89-njkpf | grep scc
+  164  oc get pods -o wide
+  165  oc get service
+  166  oc describe service oranges 
+  167  oc describe service oranges | grep Endpoints
+  168  #pod Label should match service Selector
+  169  oc describe pod oranges-7984c7bf89-njkpf | grep Labels
+  170  oc describe service oranges | grep Selector
+  171  oc edit service oranges
+  172  oc describe service oranges 
+  173  oc get route
+  174  curl oranges.apps.ocp4.example.com 
+  175  history
+  
+--------------------------------------------------------------- 
+  176  oc get projects
+  177  oc project atlas
+  178  oc get all#
+  179  oc get all
+  180  oc get events
+  181  oc edit deployment.apps/mercury
+  182  oc get all
+  183  oc edit deployment.apps/mercury
+  184  history
+
+both answer same  
+Q16:
+  265  oc project atlas 
+  266  oc get pods
+  267  oc get events 
+  268  oc get all | grep deploy
+  269  oc describe deployment.apps/mercury | grep -A1 Requests 
+  270  oc describe node master01
+  271  oc get all | grep deploy
+  272  ###Trial Memory=512Mi
+  273  oc set resources --requests memory=512Mi deployment.apps/mercury
+  274  ###Trial Memory=256Mi
+  275  oc get route
+  276  curl mercury.apps.ocp4.example.com
+------------------------------------------------------------------------  
+
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.14/html/networking/network-policy 
+ 
+Refer Section-4 in Student guide
+4. Network Security 
+ 
+  185  oc project atlas
+  186  oc get pods --show-labels
+  188  cat > netpolicy.yaml
+  189  oc create -f netpolicy.yaml 
+  190  oc get networkpolicy
+  191  history
+
+
+https://access.redhat.com/documentation/en-us/openshift_container_platform/4.14/html/storage/understanding-persistent-storage#pv-mount-options_understanding-persistent-storage
+
+Refer Section-4 in Student guide
+4. Network Security 
+  
+  192  oc new-project space
+  193  oc get all
+  195  oc new-app --name=gamma --image=quay.io/redhattraining/hello-world-nginx
+  196  oc get all
+  197  cat > pv.yaml
+  198  oc get storageclass
+  199  oc get storageclass nfs-storage -o yaml
+  200  oc create -f pv.yaml 
+  201  oc get pv
+  202  oc set volumes --type pvc --claim-name gammapvc --claim-size=1Gi --claim-mode ReadWriteMany --add --mount-path /srv deployment.apps/gamma
+  203  oc get all | grep deploy
+  204  oc get pvc
+  205  oc get all
+  206  oc scale --replicas 3 deployment.apps/gamma 
+  207  oc get all
+  208  oc rsh gamma-7bb58bccfc-dgvvc
+	   df -hT
+  209  oc rsh gamma-7bb58bccfc-fj5mp 
+  210  oc rsh gamma-7bb58bccfc-fvh27 
+  211  history
+
+
+Refer Section-7 in Student guide
+Chapter 7 | Manage Kubernetes Operators
+  
+  212  oc whoami --show-console
+	   Login the OCP console using with jobs username and password.
+  213  oc project openshift-file-integrity
+  214  oc get all 
+
+
+Refer Section-8 in Student guide
+Chapter 8 | Application Security
+  
+  215  oc new-project marathon
+       cat /etc/crontab
+  216  oc create cronjob scaling --image quay.io/redhattraining/scaling --schedule '5 4 2 * *'
+  217  oc get cronjob
+  218  oc create sa ex280-ocpsa
+  219  oc edit cronjob scaling 
+  220  oc describe  cronjob scaling 
+  221  history
+
+
+Refer Section-2 in Student guide
+Chapter 2 | Deploy Packaged Applications
+
+  222  oc project charts-development
+  223  oc new-project charts-development
+  224  helm version
+  225  helm repo add ex280-repo http://helm.ocp4.example.com/charts
+  226  helm repo list
+  227  helm search repo ex280-repo
+  228  helm install etherpad ex280-repo/etherpad
+  229  oc get pods
+  230  oc get pods -w
+  231  oc get pods
+  232  oc get all
+  233  oc describe route etherpad
+  234  telnet 10.8.0.133 9001
+  235  history
+    
+
+https://docs.openshift.com/container-platform/4.14/nodes/clusters/nodes-cluster-limit-ranges.html
+
+https://docs.openshift.com/container-platform/4.12/applications/projects/configuring-project-creation.html
+
+Refer Section-6 in Student guide
+Chapter 6 | Enable Developer Self-Service
+
+
+  236  oc new-project test1
+  237  oc describe project test1
+  238  oc adm create-bootstrap-project-template -o yaml > projtemp.yaml
+  239  vim projtemp.yaml 
+
+  245  oc create -f projtemp.yaml -n openshift-config
+  246  oc get template -n openshift-config
+	   project-request
+	   oc get project.config.openshift.io cluster -o yaml
+	   oc edit project.config.openshift.io cluster
+	   oc get project.config.openshift.io cluster -o yaml
+	   
+  248  watch oc get pods -n openshift-apiserver
+  249  oc new-project test2
+  250  oc describe project test2
+  256  history
+  
+  257  cd ..
+  258  pwd
+  259  oc get clusterversion -o yaml | grep clusterID
+  260  mkdir ex280-b1d661ca-7fb3-42e2-a62a-968b80672189
+  261  oc adm must-gather --dest-dir ex280-b1d661ca-7fb3-42e2-a62a-968b80672189
+  262  ls
+  263  tar -zcvf ex280-b1d661ca-7fb3-42e2-a62a-968b80672189
+  264  tar -zcvf ex280-b1d661ca-7fb3-42e2-a62a-968b80672189.tar.gz ex280-b1d661ca-7fb3-42e2-a62a-968b80672189
+  265  ls
+  266  history
+  
+  267  oc project space
+  268  oc get all
+  269  oc set probe --liveness --open-tcp 8080 --initial-delay-seconds 3 --timeout-seconds 10 deployment.apps/gamma
+  270  oc describe deployment.apps/gamma | grep Live
+ 
+	
+
+
+
