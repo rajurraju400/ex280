@@ -4,9 +4,12 @@
     4  oc login -u admin -p redhatocp https://api.ocp4.example.com:6443
     5  #oc login -u kubeadmin -p XxoiQ-9PZjt-Jea2a-iRiKU https://api.ocp4.example.com:6443 #only for exam
     6  oc whoami
-    7  cd Downloads/Scenario_v4.12_1.0/
-    8  ls
-    9  sh project.sh 
+    7  git clone https://github.com/rajurraju400/ex280.git
+    8 cd ex280
+    9 unzip Scenario_v4.12.1.0.zip
+    10 cd Scenario_v4.12.1.0
+    11 sh project.sh
+
 
 Class Dashboard - 20240511-NA-DO280 (57981404)
 
